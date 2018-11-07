@@ -1,4 +1,5 @@
 # Web Socket Status Page
+[![Docker Repository on Quay](https://quay.io/repository/mojanalytics/websocket-status/status "Docker Repository on Quay")](https://quay.io/repository/mojanalytics/websocket-status)
 
 A quick and dirty tool for checking websockets work
 
