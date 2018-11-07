@@ -1,0 +1,116 @@
+<head>
+  <title>WebSocket Status</title>
+  <!--suppress CssUnusedSymbol -->
+  <style>
+    .wrapper {
+      margin-left: 10vw;
+      margin-right: 10vw;
+      margin-top: 5vh;
+      display: grid;
+      grid-gap: 3vh;
+      align-items: center;
+    }
+    table {
+      border-collapse: collapse;
+    }
+    td {
+      border: 1px solid black;
+      padding: 1vw;
+      text-align: center;
+    }
+    canvas {
+      width: 60vw;
+      height: 20vh;
+    }
+
+    .connected {
+      background-color: greenyellow;
+    }
+
+    span#socketCount {
+      float: right;
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <h1 id="heading">WebSocket Status<span id="socketCount"></span></h1>
+  <table>
+    <tr class="col1">
+      <td class="row1">0</td>
+      <td class="row2">0</td>
+      <td class="row3">0</td>
+      <td class="row4">0</td>
+      <td class="row5">0</td>
+    </tr>
+    <tr class="col2">
+      <td class="row1">0</td>
+      <td class="row2">0</td>
+      <td class="row3">0</td>
+      <td class="row4">0</td>
+      <td class="row5">0</td>
+    </tr>
+    <tr class="col3">
+      <td class="row1">0</td>
+      <td class="row2">0</td>
+      <td class="row3">0</td>
+      <td class="row4">0</td>
+      <td class="row5">0</td>
+    </tr>
+    <tr class="col4">
+      <td class="row1">0</td>
+      <td class="row2">0</td>
+      <td class="row3">0</td>
+      <td class="row4">0</td>
+      <td class="row5">0</td>
+    </tr>
+    <tr class="col5">
+      <td class="row1">0</td>
+      <td class="row2">0</td>
+      <td class="row3">0</td>
+      <td class="row4">0</td>
+      <td class="row5">0</td>
+    </tr>
+  </table>
+</div>
+<script defer>
+  const socks = [];
+  const headingElement = document.getElementById('heading');
+  const socketCountElement = document.getElementById('socketCount');
+
+  function onTick() {
+    const connectedSocketCount = socks.filter(v => v.readyState === WebSocket.OPEN).length;
+    if (socks.length > 0 && connectedSocketCount === socks.length) {
+      headingElement.classList.add('connected');
+    } else {
+      headingElement.classList.remove('connected');
+    }
+    socketCountElement.innerText = "" + connectedSocketCount + "/" + socks.length + " connected";
+    window.requestAnimationFrame(onTick)
+  }
+  let messageCount = 0;
+  const hasWebsockets = !(typeof WebSocket === "undefined");
+  window.addEventListener("load", function(event) {
+    if (hasWebsockets) {
+      if (!(typeof window.requestAnimationFrame === "undefined")) {
+        window.requestAnimationFrame(onTick);
+      }
+      const cells = document.querySelectorAll('td');
+      cells.forEach(function (cell) {
+        let s = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host + "/ws/" + Math.random().toString(36).substring(2));
+        socks.push(s);
+        s.onmessage = function (msg) {
+          cell.innerText = (parseInt(cell.innerText, 10) + 1).toString();
+          messageCount += 1;
+          console.log(messageCount);
+        };
+      });
+    } else {
+      document.getElementById('heading').innerText = "Your browser doesn't support WebSockets";
+    }
+  });
+  window.addEventListener("unload", function(event) {
+    socks.forEach(function(ws) {ws.close();})
+  });
+</script>
+</body>
