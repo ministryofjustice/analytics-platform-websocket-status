@@ -80,43 +80,52 @@
     </tr>
   </table>
 
-<script defer>
-  const socks = [];
-  const socketCountElement = document.getElementById('socketCount');
+<script>
+  var socks = [];
+  var socketCountElement = document.getElementById('socketCount');
+  var connectClassname = 'connected'
+  var messageCount = 0;
+  var hasWebsockets = !(typeof WebSocket === 'undefined');
 
   function onTick() {
-    const connectedSocketCount = socks.filter(v => v.readyState === WebSocket.OPEN).length;
+    var connectedSocketCount = socks.filter(function connectedSocets (v) { return v.readyState === WebSocket.OPEN }).length;
     if (socks.length > 0 && connectedSocketCount === socks.length) {
-      socketCountElement.classList.add('connected');
+      socketCountElement.classList.add(connectClassname);
     } else {
-      socketCountElement.classList.remove('connected');
+      socketCountElement.classList.remove(connectClassname);
     }
-    socketCountElement.innerText = "" + connectedSocketCount + "/" + socks.length + " connected";
+    socketCountElement.innerText = connectedSocketCount + '/' + socks.length + ' connected';
     window.requestAnimationFrame(onTick)
   }
-  let messageCount = 0;
-  const hasWebsockets = !(typeof WebSocket === "undefined");
-  window.addEventListener("load", function(event) {
-    if (hasWebsockets) {
-      if (!(typeof window.requestAnimationFrame === "undefined")) {
-        window.requestAnimationFrame(onTick);
-      }
-      const cells = document.querySelectorAll('td');
-      cells.forEach(function (cell) {
-        let s = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host + "/ws/" + Math.random().toString(36).substring(2));
-        socks.push(s);
-        s.onmessage = function (msg) {
-          cell.innerText = (parseInt(cell.innerText, 10) + 1).toString();
-          messageCount += 1;
-          console.log(messageCount);
-        };
-      });
-    } else {
-      document.getElementById('heading').innerText = "Your browser doesn't support WebSockets";
+
+  function onLoad (event) {
+    if (!hasWebsockets) {
+      document.getElementById('heading').innerText = 'Your browser doesn’t support WebSockets';
     }
-  });
-  window.addEventListener("unload", function(event) {
-    socks.forEach(function(ws) {ws.close();})
-  });
+
+    if (!(typeof window.requestAnimationFrame === 'undefined')) {
+      window.requestAnimationFrame(onTick);
+    }
+
+    var cells = document.querySelectorAll('td');
+    cells.forEach(function (cell) {
+      var s = new WebSocket(((window.location.protocol === 'https:') ? 'wss://' : 'ws://') + window.location.host + '/ws/' + Math.random().toString(36).substring(2));
+      socks.push(s);
+      s.onmessage = function (msg) {
+        cell.innerText = (parseInt(cell.innerText, 10) + 1).toString();
+        messageCount += 1;
+        console.log(messageCount);
+      };
+    });
+  }
+
+  function onUnload (event) {
+    socks.forEach(function(ws) {
+      ws.close();
+    });
+  }
+
+  window.addEventListener('load', onLoad);
+  window.addEventListener('unload', onUnload);
 </script>
 </body>
