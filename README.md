@@ -21,8 +21,8 @@ are connected successfully.
 It will listen on port 8000.
 
 ## Running in docker
-* `docker built . -t websocket-status`
-* `docker run --rm -it websocket-status -P`
+* `docker build . -t websocket-status`
+* `docker run --rm -it -p 8000:8000 websocket-status`
 
 
 

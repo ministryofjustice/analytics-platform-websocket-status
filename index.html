@@ -2,39 +2,46 @@
   <title>WebSocket Status</title>
   <!--suppress CssUnusedSymbol -->
   <style>
-    .wrapper {
-      margin-left: 10vw;
-      margin-right: 10vw;
-      margin-top: 5vh;
-      display: grid;
-      grid-gap: 3vh;
-      align-items: center;
+    html, body {
+      font-family: Arial, Helvetica, sans-serif;
+      padding: 0;
+      margin: 0;
+    }
+    body {
+      padding: 2em;
+    }
+    h1 {
+      margin: 0 0 1em;
+    }
+    #socketCount {
+      background: #b10e1e;
+      border-radius: 5px;
+      color: #ffffff;
+      display: inline-block;
+      font-size: 80%;
+      margin-left: 1em;
+      padding: 3px 9px;
+      vertical-align: top;
+    }
+    #socketCount.connected {
+      background-color: #64a500;
     }
     table {
       border-collapse: collapse;
+      width: 100%;
     }
     td {
       border: 1px solid black;
-      padding: 1vw;
+      padding: 1em;
       text-align: center;
-    }
-    canvas {
-      width: 60vw;
-      height: 20vh;
-    }
-
-    .connected {
-      background-color: greenyellow;
-    }
-
-    span#socketCount {
-      float: right;
     }
   </style>
 </head>
 <body>
-<div class="wrapper">
-  <h1 id="heading">WebSocket Status<span id="socketCount"></span></h1>
+  <h1>
+    WebSocket Status
+    <span id="socketCount"></span>
+  </h1>
   <table>
     <tr class="col1">
       <td class="row1">0</td>
@@ -72,45 +79,53 @@
       <td class="row5">0</td>
     </tr>
   </table>
-</div>
-<script defer>
-  const socks = [];
-  const headingElement = document.getElementById('heading');
-  const socketCountElement = document.getElementById('socketCount');
+
+<script>
+  var socks = [];
+  var socketCountElement = document.getElementById('socketCount');
+  var connectClassname = 'connected'
+  var messageCount = 0;
+  var hasWebsockets = !(typeof WebSocket === 'undefined');
 
   function onTick() {
-    const connectedSocketCount = socks.filter(v => v.readyState === WebSocket.OPEN).length;
+    var connectedSocketCount = socks.filter(function connectedSocets (v) { return v.readyState === WebSocket.OPEN }).length;
     if (socks.length > 0 && connectedSocketCount === socks.length) {
-      headingElement.classList.add('connected');
+      socketCountElement.classList.add(connectClassname);
     } else {
-      headingElement.classList.remove('connected');
+      socketCountElement.classList.remove(connectClassname);
     }
-    socketCountElement.innerText = "" + connectedSocketCount + "/" + socks.length + " connected";
+    socketCountElement.innerText = connectedSocketCount + '/' + socks.length + ' connected';
     window.requestAnimationFrame(onTick)
   }
-  let messageCount = 0;
-  const hasWebsockets = !(typeof WebSocket === "undefined");
-  window.addEventListener("load", function(event) {
-    if (hasWebsockets) {
-      if (!(typeof window.requestAnimationFrame === "undefined")) {
-        window.requestAnimationFrame(onTick);
-      }
-      const cells = document.querySelectorAll('td');
-      cells.forEach(function (cell) {
-        let s = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host + "/ws/" + Math.random().toString(36).substring(2));
-        socks.push(s);
-        s.onmessage = function (msg) {
-          cell.innerText = (parseInt(cell.innerText, 10) + 1).toString();
-          messageCount += 1;
-          console.log(messageCount);
-        };
-      });
-    } else {
-      document.getElementById('heading').innerText = "Your browser doesn't support WebSockets";
+
+  function onLoad (event) {
+    if (!hasWebsockets) {
+      document.getElementById('heading').innerText = 'Your browser doesn’t support WebSockets';
     }
-  });
-  window.addEventListener("unload", function(event) {
-    socks.forEach(function(ws) {ws.close();})
-  });
+
+    if (!(typeof window.requestAnimationFrame === 'undefined')) {
+      window.requestAnimationFrame(onTick);
+    }
+
+    var cells = document.querySelectorAll('td');
+    cells.forEach(function (cell) {
+      var s = new WebSocket(((window.location.protocol === 'https:') ? 'wss://' : 'ws://') + window.location.host + '/ws/' + Math.random().toString(36).substring(2));
+      socks.push(s);
+      s.onmessage = function (msg) {
+        cell.innerText = (parseInt(cell.innerText, 10) + 1).toString();
+        messageCount += 1;
+        console.log(messageCount);
+      };
+    });
+  }
+
+  function onUnload (event) {
+    socks.forEach(function(ws) {
+      ws.close();
+    });
+  }
+
+  window.addEventListener('load', onLoad);
+  window.addEventListener('unload', onUnload);
 </script>
 </body>
