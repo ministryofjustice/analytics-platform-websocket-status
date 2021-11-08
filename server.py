@@ -1,12 +1,22 @@
 import os
 import asyncio
+import logging
 import uuid
 from datetime import datetime
 
 from websockets import ConnectionClosed
 
 from sanic import Sanic
+from sanic.log import access_logger
 from sanic.response import file, redirect
+
+
+class PingFilter(logging.Filter):
+    def filter(self, record):
+        return not (record.request.endswith("?healthz") and record.status == 200)
+
+
+access_logger.addFilter(PingFilter())
 
 app = Sanic()
 app.socks = []
